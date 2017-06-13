@@ -25,16 +25,31 @@ class DB_API{
      * storing reading
     */
 
-    public function storeReading($flat_id,$newReading) {
+    public function storeReading($flat_id,$takenOn,$newReading,$remarks,$name) {
 
-        $var1 = 'a';
-        $var2 = 'a';
-        $var3 = 'a';
-        $var4 = 'a';
-        $stmt = $this -> conn -> prepare("INSERT INTO test(col1,col2,col3,col4) VALUES (2,2,2,2)");
-        $stmt -> bind_param("sssss",$var1,$var2,$var3,$var4);
+        $flat_id = mysqli_real_escape_string($this -> conn,$flat_id);
+        $newReading = mysqli_real_escape_string($this -> conn,$newReading);
+        $remarks = mysqli_real_escape_string($this -> conn,$remarks);
+        $name = mysqli_real_escape_string($this -> conn,$name);
+
+        $stmt = $this -> conn -> prepare("INSERT INTO MeterReadings(FlatId,TakenOn,ReadingValue,Remarks,TakenBy) VALUES ('$flat_id',NOW(),'$newReading','$remarks','$name')");
+        $stmt -> bind_param("sssss",$flat_id,$takenOn,$newReading,$remarks,$name);
         $result = $stmt -> execute();
         $stmt -> close();
+
+        // check for successful store
+        if ($result) {
+
+            $stmt = $this->conn->prepare("SELECT * FROM MeterReadings WHERE Flat_Id = '$flat_id'");
+            $stmt -> bind_param("s", $flat_id);
+            $stmt -> execute();
+            $reading = $stmt -> get_result() -> fetch_assoc();
+            $stmt -> close();
+
+            return $reading;
+        } else {
+            return false;
+        }
 
     }
 
@@ -45,7 +60,7 @@ class DB_API{
     public function storeUser($name , $password) {
 
         $uuid = uniqid('', true);
-        $hash = $this->hashSSHA($password);
+        $hash = $this -> hashSSHA($password);
         $encrypted_password = $hash["encrypted"]; // encrypted password
         $salt = $hash["salt"]; // salt
         $role = "field_user";
@@ -57,7 +72,7 @@ class DB_API{
         $role = mysqli_real_escape_string($this -> conn,$role);
 
         $stmt = $this -> conn -> prepare("INSERT INTO Users(Username,Name,Password,Salt,Designation,Role,UpdatedBy) VALUES('$name','$name','$encrypted_password','$salt','$role',1,'$name')");
-        $stmt->bind_param("sssss", $name, $name,$encrypted_password,$salt,$role);
+        $stmt->bind_param("sssssss", $name, $name,$encrypted_password,$salt,"Designation",$role,"UpdatedBy");
         $result = $stmt->execute();
         $stmt->close();
 
@@ -93,9 +108,9 @@ class DB_API{
             $stmt->close();
 
             // verifying user password
-            $salt = $user['salt'];
-            $encrypted_password = $user['encrypted_password'];
-            $hash = $this->checkhashSSHA($salt, $password);
+            $salt = $user["Salt"];
+            $encrypted_password = $user["Password"];
+            $hash = $this -> checkhashSSHA($salt, $password);
             // check for password equality
             if ($encrypted_password == $hash) {
                 // user authentication details are correct
@@ -103,6 +118,32 @@ class DB_API{
             }
         } else {
             return NULL;
+        }
+    }
+
+    /**
+     * Check user is existed or not
+     */
+    public function isUserExisted($name) {
+
+        $name = mysqli_real_escape_string($this->conn,$name);
+
+        $stmt = $this->conn->prepare("SELECT * from Users WHERE Name = '$name'");
+
+        $stmt->bind_param("s", $name);
+
+        $stmt->execute();
+
+        $stmt->store_result();
+
+        if ($stmt -> num_rows > 0) {
+            // user existed
+            $stmt->close();
+            return true;
+        } else {
+            // user not existed
+            $stmt->close();
+            return false;
         }
     }
 
@@ -135,10 +176,12 @@ class DB_API{
         return $hash;
     }
 
-
+    function console_log( $data ){
+        echo '<script>';
+        echo 'console.log('. json_encode( $data ) .')';
+        echo '</script>';
+    }
 }
-
-
 
 ?>
 

@@ -18,10 +18,12 @@ if (isset($_POST['name']) && isset($_POST['password'])) {
     $user = $db -> getUserByUsernameAndPassword($name, $password);
 
     if ($user != false) {
-        // use is found
+        // user is found
         $response["error"] = FALSE;
         $response["user"]["name"] = $user["Name"];
-        $response["user"]["password"] = $user["Password"];
+        $response["user"]["email"] = $user["Password"];
+        $response["user"]["designation"] = $user["Designation"];
+        $response["user"]["role"] = $user["Role"];
         echo json_encode($response);
 
     } else {
