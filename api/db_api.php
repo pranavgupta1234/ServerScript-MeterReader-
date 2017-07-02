@@ -23,7 +23,7 @@ class DB_API{
 
     /**
      * storing reading
-    */
+     */
 
     public function storeReading($flat_id,$takenOn,$newReading,$remarks,$name) {
 
@@ -98,7 +98,7 @@ class DB_API{
 
         $username = mysqli_real_escape_string($this->conn,$username);
 
-        $stmt = $this->conn->prepare("SELECT * FROM Users WHERE Username = '$username'");
+        $stmt = $this->conn->prepare("SELECT * FROM Users WHERE Name = '$username'");
 
         $stmt->bind_param("s", $username);
 
@@ -184,7 +184,3 @@ class DB_API{
 }
 
 ?>
-
-
-
-

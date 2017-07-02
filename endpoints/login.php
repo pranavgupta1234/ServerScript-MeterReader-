@@ -8,7 +8,7 @@ $db = new DB_API();
 // json response array
 $response = array("error" => FALSE);
 
-if (isset($_POST['name']) && isset($_POST['password'])) {
+if (isset($_POST['name']) and isset($_POST['password'])) {
 
     // receiving the post params
     $name = $_POST['name'];
@@ -20,10 +20,8 @@ if (isset($_POST['name']) && isset($_POST['password'])) {
     if ($user != false) {
         // user is found
         $response["error"] = FALSE;
-        $response["user"]["name"] = $user["Name"];
-        $response["user"]["email"] = $user["Password"];
-        $response["user"]["designation"] = $user["Designation"];
-        $response["user"]["role"] = $user["Role"];
+        $response["name"] = $user["Name"];
+        $response["password"] = $user["Password"];
         echo json_encode($response);
 
     } else {
