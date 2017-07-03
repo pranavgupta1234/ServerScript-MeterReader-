@@ -27,7 +27,7 @@ if (!empty($_POST)) {
     $login_ok = false;
     $name = $_POST['name'];
 
-    $row = $stmt->fetch();
+    $row = $stmt -> fetch();
 
     if (password_verify($_POST['password'], $row['encrypted_password'])) {
         $login_ok = true;

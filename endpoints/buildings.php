@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Created by PhpStorm.
+ * User: Pranav Gupta
+ * Date: 7/3/2017
+ * Time: 12:10 PM
+ */
+
+
 require("../api/config.php");
 
 if (!empty($_POST)) {
@@ -8,7 +16,7 @@ if (!empty($_POST)) {
         "error" => FALSE
     );
 
-    $query = "SELECT * FROM Campuses ;";
+    $query = "SELECT * FROM Buildings ;";
 
     try {
 

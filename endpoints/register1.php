@@ -27,11 +27,13 @@ if (!empty($_POST)) {
     }
 
     $row = $stmt->fetch();
+
     if ($row) {
 
         $response["error"] = TRUE;
         $response["message"] = "I'm sorry, this email is already in use";
         die(json_encode($response));
+
     } else {
         $query = "INSERT INTO users ( unique_id, name,encrypted_password, created_at ) VALUES ( :uuid, :name, :encrypted_password, NOW() ) ";
 
