@@ -1,47 +1,66 @@
 <?php
 
-require_once '../api/db_api.php';
+require("../api/config.php");
 
-$db = new DB_API();
+if (!empty($_POST)) {
 
-// json response array
-$response = array("error" => FALSE);
+    $response = array(
+        "error" => FALSE
+    );
 
-if (isset($_POST['name'])&& isset($_POST['password'])) {
+    $query = " SELECT 1 FROM users WHERE name = :name";
 
-    // receiving the post params
-    $name = $_POST['name'];
-    $password = $_POST['password'];
+    //now lets update what :user should be
+    $query_params = array(
+        ':name' => $_POST['name']
+    );
 
-    // check if user is already existed with the same email
-    if ($db -> isUserExisted($name)) {
-        // user already existed
+    try {
+        $stmt = $db->prepare($query);
+        $result = $stmt->execute($query_params);
+    }
+    catch (PDOException $ex) {
+
         $response["error"] = TRUE;
-        $response["error_msg"] = "User already existed with " . $name;
-        echo json_encode($response);
+        $response["message"] = "Database Error1. Please Try Again!";
+        die(json_encode($response));
+    }
+
+    $row = $stmt->fetch();
+
+    if ($row) {
+
+        $response["error"] = TRUE;
+        $response["message"] = "I'm sorry, this email is already in use";
+        die(json_encode($response));
 
     } else {
-        // create a new user
-        $user = $db->storeUser($name,$password);
-        if ($user) {
-            // user stored successfully
-            $response["error"] = FALSE;
-            $response["user"]["name"] = $user["Name"];
-            $response["user"]["email"] = $user["Password"];
-            $response["user"]["designation"] = $user["Designation"];
-            $response["user"]["role"] = $user["Role"];
-            echo json_encode($response);
+        $query = "INSERT INTO users ( unique_id, name,encrypted_password, created_at ) VALUES ( :uuid, :name, :encrypted_password, NOW() ) ";
 
-        } else {
-            // user failed to store
-            $response["error"] = TRUE;
-            $response["error_msg"] = "Unknown error occurred in registration!";
-            echo json_encode($response);
+        $query_params = array(
+            ':uuid' => uniqid('', true),
+            ':name' => $_POST['name'],
+            ':encrypted_password' => password_hash($_POST['password'], PASSWORD_DEFAULT) // encrypted password
+        );
+
+        try {
+            $stmt = $db->prepare($query);
+            $result = $stmt->execute($query_params);
         }
+
+        catch (PDOException $ex) {
+            $response["error"] = TRUE;
+            $response["message"] = "Database Error2. Please Try Again!";
+            die(json_encode($response));
+        }
+
+        $response["error"] = FALSE;
+        $response["message"] = "Register successful!";
+        echo json_encode($response);
     }
+
 } else {
-    $response["error"] = TRUE;
-    $response["error_msg"] = "Required parameters (name, email or password) is missing!";
-    echo json_encode($response);
+    echo 'Android Learning';
 }
+
 ?>

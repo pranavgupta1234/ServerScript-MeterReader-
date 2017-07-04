@@ -1,39 +1,55 @@
 <?php
 
-require_once '../api/db_api.php';
+require("../api/config.php");
 
+if (!empty($_POST)) {
 
-$db = new DB_API();
+    $response = array("error" => FALSE);
 
-// json response array
-$response = array("error" => FALSE);
+    $query = "SELECT * FROM users WHERE name = :name";
 
-if (isset($_POST['name']) and isset($_POST['password'])) {
+    $query_params = array(
+        ':name' => $_POST['name']
+    );
 
-    // receiving the post params
+    try {
+        $stmt = $db->prepare($query);
+        $result = $stmt->execute($query_params);
+    }
+
+    catch (PDOException $ex) {
+        $response["error"] = true;
+        $response["message"] = "Database Error1. Please Try Again!";
+        die(json_encode($response));
+    }
+
+    $validated_info = false;
+    $login_ok = false;
     $name = $_POST['name'];
-    $password = $_POST['password'];
 
-    // get the user by email and password
-    $user = $db -> getUserByUsernameAndPassword($name, $password);
+    $row = $stmt -> fetch();
 
-    if ($user != false) {
-        // user is found
-        $response["error"] = FALSE;
-        $response["name"] = $user["Name"];
-        $response["password"] = $user["Password"];
-        echo json_encode($response);
+    if (password_verify($_POST['password'], $row['encrypted_password'])) {
+        $login_ok = true;
+    }
+
+    if ($login_ok == true) {
+        $response["error"] = false;
+        $response["message"] = "Login successful!";
+        $response["user"]["name"] = $row["name"];
+        $response["user"]["uid"] = $row["unique_id"];
+        $response["user"]["created_at"] = $row["created_at"];
+        die(json_encode($response));
 
     } else {
-        // user is not found with the credentials
-        $response["error"] = TRUE;
-        $response["error_msg"] = "Login credentials are wrong. Please try again!";
-        echo json_encode($response);
+        $response["error"] = true;
+        $response["message"] = "Invalid Credentials!";
+        die(json_encode($response));
     }
+
 } else {
-    // required post params is missing
-    $response["error"] = TRUE;
-    $response["error_msg"] = "Required parameters email or password is missing!";
-    echo json_encode($response);
+
+    echo 'Android Learning';
 }
+
 ?>
